@@ -30,32 +30,42 @@ const get_gpv = (result) => {
 const calculate_gpa = () => {
     result_records = Array.from(document.getElementsByTagName("tr"))
     if (result_records.length > 0){
-        let total_credits = 0
-        let prod_credit_results = 0
+        let selected_credits = 0;
+        let total_credits = 0;
+        let prod_credit_results = 0;
         result_records.forEach((row) => {
             credit = parseInt(row.innerText.split("\t")[3])
             result = get_gpv(row.innerText.split("\t")[4])
             included_in_gpa = row.innerText.split("\t")[5]
-            is_included_in_gpa = true
+            is_included_in_gpa = true;
             if(!isNaN(included_in_gpa)){
                 checkbox = row.querySelectorAll('input')
                 is_included_in_gpa = checkbox[0].checked
             }
-            if (credit === 0 || isNaN(credit) || result === -1 || !is_included_in_gpa) {
+            if (credit === 0 || isNaN(credit) || result === -1) {
                 return;
             }
-            total_credits += credit
+            total_credits += credit;
+            if (!is_included_in_gpa) return;
+            selected_credits += credit
             prod_credit_results += credit * result
         });
-        GPA = prod_credit_results/total_credits
+        console.log("CGPA is : " + prod_credit_results);
+        GPA = prod_credit_results/selected_credits
         gpa_class = get_class(GPA)
         GPA = GPA.toFixed(4)
-        gpa_element = document.getElementById('gpa')
-        gpa_class_element = document.getElementById('gpa_class')
+        gpa_element = document.getElementById('gpa');
+        gpa_class_element = document.getElementById('gpa_class');
+        credits_element = document.getElementById('applicable_credits');
+        total_credits_element = document.getElementById('total_credits');
         if(gpa_element){
             gpa_element.textContent = `GPA : ${GPA}`;
             if(gpa_class !== undefined) gpa_class_element.textContent = `Class : ${gpa_class}`
             else gpa_class_element.textContent = ''
+            credits_element.textContent = `No of Selected Credits : ${selected_credits}`;
+            if(total_credits == selected_credits) credits_element.style.display = 'none'
+            else credits_element.style.display = 'block';
+            total_credits_element.textContent = `No of Total Credits : ${total_credits}`;
         }else{
             alert(`GPA : ${GPA}\nClass : ${gpa_class}`);
         }
@@ -85,6 +95,20 @@ const modify_page = (tables) => {
 
     GPA = null
     gpa_class = null
+    selected_credits = null
+    total_credits = null
+
+    var creditsh5Element = document.createElement('h6');
+    var creditsspanElement = document.createElement('span');
+    creditsspanElement.id = 'applicable_credits'
+    creditsspanElement.textContent = `Selected Credits : ${selected_credits}`;
+    creditsh5Element.appendChild(creditsspanElement)
+
+    var total_credits_h5Element = document.createElement('h6');
+    var total_credits_spanElement = document.createElement('span');
+    total_credits_spanElement.id = 'total_credits'
+    total_credits_spanElement.textContent = `Total Credits : ${total_credits}`;
+    total_credits_h5Element.appendChild(total_credits_spanElement)
 
     var gpah5Element = document.createElement('h5');
     var gpastrongElement = document.createElement('strong');
@@ -106,8 +130,12 @@ const modify_page = (tables) => {
         if (primaryTag.children.length >= gpaInsertLocation) {
             primaryTag.insertBefore(gpah5Element, primaryTag.children[gpaInsertLocation]);
             primaryTag.insertBefore(gpa_class_h5Element, primaryTag.children[gpaInsertLocation+1]);
-            gpah5Element.className = primaryTag.children[gpaInsertLocation].className
-            gpa_class_h5Element.className = primaryTag.children[gpaInsertLocation].className
+            primaryTag.insertBefore(creditsh5Element, primaryTag.children[gpaInsertLocation+2]);
+            primaryTag.insertBefore(total_credits_h5Element, primaryTag.children[gpaInsertLocation+3]);
+            gpah5Element.className = primaryTag.children[gpaInsertLocation].className;
+            gpa_class_h5Element.className = primaryTag.children[gpaInsertLocation].className;
+            creditsh5Element.className = primaryTag.children[gpaInsertLocation].className;
+            total_credits_h5Element.className = primaryTag.children[gpaInsertLocation].className;
         } else {
             console.error("The div doesn't have enough children.");
         }
